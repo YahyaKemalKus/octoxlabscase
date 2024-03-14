@@ -1,0 +1,52 @@
+version: '3.8'
+
+volumes:
+  postgres_data:
+    driver: local
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: django_web
+    command: python manage.py runserver 0.0.0.0:8001
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env.test
+    depends_on:
+      - elasticsearch_test
+      - postgresql
+
+  postgresql:
+    image: postgres:15
+    container_name: postgresql
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+
+  elasticsearch_test:
+    image: elasticsearch:${STACK_VERSION}
+    container_name: elasticsearch_test
+    environment:
+      - cluster.name=${CLUSTER_NAME}
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - http.port=9201
+    ports:
+      - "9201:9201"
+    mem_limit: 536870912
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
