@@ -9,10 +9,6 @@ volumes:
     driver: local
   kibanadata:
     driver: local
-  logstashdata:
-    driver: local
-  fleetserverdata:
-    driver: local
 
 networks:
   default:
